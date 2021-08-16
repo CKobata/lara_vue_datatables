@@ -31,6 +31,9 @@ class MemberController extends Controller
         return view('home');
     }*/
 
+    /**
+     * 新規登録
+     */
     public function add(Request $request)
     {
         // パラメータ
@@ -46,9 +49,6 @@ class MemberController extends Controller
             'join_date' => $request->join_date,
             'leave_date' => $request->leave_date,
         ];
-        /*if ($request->id) {
-            $param['id'] = $request->id
-        };*/
         
         // トランザクション
         DB::beginTransaction();
@@ -69,30 +69,33 @@ class MemberController extends Controller
 
             return response()->json([
                 'mode' => $mode,
-                'msg'  => 'Ajaxによるデータの登録が成功しました。', 
+                'msg'  => 'Axiosによるデータの' . $mode . '処理が成功しました。', 
                 'member_add'   => $return,
                 ]);                
             
         } catch (\Exception $e) {
             // エラー時
             DB::rollback();
-            return response()->json(['msg' => 'Ajaxによるデータの登録が失敗しました。'
+            return response()->json(['msg' => 'Axiosによるデータの登録が失敗しました。'
                                 ]);
         }  
     }
 
+    /**
+     * 物理削除
+     */
     public function delete(Request $request)
     {
         // トランザクション
         DB::beginTransaction();
         try {
 
-            \App\Member::destroy($request->ids);
+            Member::destroy($request->ids);
             DB::commit();
 
             return response()->json([
                 'mode' => 'DELETE',
-                'msg'  => 'Ajaxによるデータの削除が成功しました。', 
+                'msg'  => 'Axiosによるデータの削除が成功しました。', 
                 'member_delete'   => $request->ids,
             ]);                
             
@@ -101,70 +104,59 @@ class MemberController extends Controller
             DB::rollback();
             return response()->json([
                 'mode' => 'ERROR',
-                'msg' => 'Ajaxによるデータの削除が失敗しました。'
+                'msg' => 'Axiosによるデータの削除が失敗しました。'
             ]);
         }  
-
-
     }
 
-    public function store(Request $request)
+    /**
+     * 保存処理
+     */
+    /*
+     public function store(Request $request)
     {
-        // パラメータ
-        // 結局、回さないといけないのか？
-        /*foreach ($attributes as $key => $value) {
-
-        }*/
-
-        /*$params = [];
-        foreach ($posts as $key => $value) {
-            $params[] = [
-                'id' => $value['id'],
-                'member_number' => $value['member_number'],
-                'last_name' => $value['last_name'],
-                'first_name' => $value['first_name'],
-                'sex' => $value['sex'],
-                'birthday' => $value['birthday'],
-                'email' => $value['email'],
-                'dept_id' => $value['dept_id'],
-                'tel' => $value['tel'],
-                'join_date' => $value['join_date'],
-                'leave_date' => $value['leave_date']
-            ];
-        }
-        */
-
-
-        
         // トランザクション
         
         DB::beginTransaction();
         try { 
             $member = new Member;
-            //$member->fill($attributes)->save($options);
             $member->fill($request->all())->save();            
             DB::commit();
 
-            $members =  App\Member::all();
-            $depts =  App\Dept::all();
+            $members = Member::all();
+            $depts   = Dept::all();
 
-
-            return response()->json(['msg'  => 'Ajaxによるデータの登録が成功しました。', 
-                'members'   => $members,
-                'depts' => $depts
+            return response()->json(['msg'  => 'Axiosによるデータの登録が成功しました。', 
+                'members' => $members,
+                'depts'   => $depts
             ]); 
 
         } catch (\Exception $e) {
             DB::rollback();
             
-            $members =  App\Member::all();
-            $depts =  App\Dept::all();
-            return response()->json(['msg'  => 'Ajaxによるデータの登録が失敗しました。', 
-                'members'   => $members,
-                'depts' => $depts
+            $members = Member::all();
+            $depts   = Dept::all();
+            return response()->json(['msg'  => 'Axiosによるデータの登録が失敗しました。', 
+                'members' => $members,
+                'depts'   => $depts
            ]); 
         }
-        
-         
+    }*/
+
+    /**
+     * 初期化：members_bkのテーブルを、memberに丸ごとコピー
+     */
+    public function init(Request $request)
+    {
+        Member::truncate();
+        DB::insert("INSERT INTO members SELECT * FROM members_bk");
+
+        $members = Member::all();
+        $depts   = Dept::all();
+        return response()->json(['msg'  => 'テーブルを初期化しました。',
+            'members' => $members, 
+            'depts'   => $depts
+        ]); 
     }
+
 }

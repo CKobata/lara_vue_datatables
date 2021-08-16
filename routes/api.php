@@ -32,6 +32,8 @@ Route::post('/member/add', 'MemberController@add');
 
 Route::post('/member/delete', 'MemberController@delete');
 
+Route::get('/member/init', 'MemberController@init');
+
 
 
 

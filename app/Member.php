@@ -15,7 +15,8 @@ class Member extends Model
         'email',
         'dept_id',
         'tel',
-        'join_date'
+        'join_date',
+        'leave_date'
     ];
     protected $guarded = ['id'];
 

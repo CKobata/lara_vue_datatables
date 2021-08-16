@@ -1,5 +1,9 @@
 <template>
 <div>
+    <b-form inline class="mb-4 float-right">
+      <b-button variant="warning" @click="initDB" class="mr-2">DB初期化</b-button>
+    </b-form>
+
     <b-form inline class="mb-2">
       <label for="per_page" class="mr-2">表示</label>
       <b-form-select
@@ -44,14 +48,9 @@
     </b-form>
     <b-form inline class="mb-4">
       <b-button variant="primary" @click="addData" class="mr-2">新規追加</b-button>
-      <b-button variant="primary" @click="deleteData">チェックしたものを削除</b-button>
+      <b-button variant="primary" @click="deleteData" class="mr-4">チェックしたものを削除</b-button>
+      <p class="text-danger mt-3">{{ message }}</p>
     </b-form>
-
-    
-    <!-- b-form inline class="mb-5">
-      <b-button variant="primary" @click="saveData">保存</b-button>
-    </b-form -->
-    
     
     <b-table 
     id="datatable"
@@ -94,7 +93,6 @@
 
     <p class="float-md-left">{{ rows + '件中 ' +　((currentPage - 1) * perPage + 1) + '～' + lastNum }} 件表示</p>
 
-    <!-- デバッグ：{{checkDelete}} -->
 
     <b-pagination class="mt-3" align="end" 
       v-model="currentPage"
@@ -256,7 +254,6 @@
       </b-form>
       </validation-observer>
     </b-modal>
-    {{message}}
 </div>
 </template>
 
@@ -320,11 +317,11 @@
           leave_date: ''
         },
         nameState: null,
-        message: '',
         modalAdd: {
           title: '',
         },
         checkDelete: [],
+        message: '',
       }
     },
     created() {
@@ -384,6 +381,7 @@
                 let index = this.members_disp.findIndex(i => i.id ==  response.data.member_delete[key])
                 this.members_disp.splice(index, 1);
               }
+              this.message = response.data.msg
             }
           })
           .catch((e) => {
@@ -416,6 +414,7 @@
                 targetMember[key] = response.data.member_add[key]
               }
             }
+            this.message = response.data.msg
           })
           .catch((e) => {
             alert(e.response.data)
@@ -450,6 +449,19 @@
           options.push({value: v.dept_id, text: v.dept_name})
         });
         return options
+      },
+      initDB: function () {
+        axios.get('/api/member/init')
+        .then(response => {
+          this.members = response.data.members
+          this.members_disp = JSON.parse(JSON.stringify(this.members));
+          this.depts = response.data.depts
+          this.deptsName = this.makeDeptsName(this.depts)
+          this.deptsOptions = this.makeDeptsOptions(this.depts)
+          this.message = response.data.msg
+        })
+        .catch(error => {console.log(error) 
+        });       
       }
     }
   }
